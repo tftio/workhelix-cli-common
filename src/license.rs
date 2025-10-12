@@ -20,7 +20,7 @@ impl LicenseType {
     ///
     /// Recognizes common variations like "MIT", "Apache-2.0", "CC0-1.0", etc.
     #[must_use]
-    pub fn from_str(s: &str) -> Option<Self> {
+    pub fn parse(s: &str) -> Option<Self> {
         match s.to_uppercase().as_str() {
             "MIT" => Some(Self::MIT),
             "APACHE-2.0" | "APACHE2" | "APACHE" => Some(Self::Apache2),
@@ -50,9 +50,7 @@ impl LicenseType {
 /// Formatted license information string
 #[must_use]
 pub fn display_license(tool_name: &str, license: LicenseType) -> String {
-    let mut output = String::new();
-
-    output.push_str(&format!("{} is licensed under {}\n\n", tool_name, license.name()));
+    let mut output = format!("{tool_name} is licensed under {}\n\n", license.name());
 
     match license {
         LicenseType::MIT => {
@@ -61,22 +59,22 @@ pub fn display_license(tool_name: &str, license: LicenseType) -> String {
             output.push_str("• Modification\n");
             output.push_str("• Distribution\n");
             output.push_str("• Private use\n");
-            output.push_str("\n");
+            output.push('\n');
             output.push_str("Requires:\n");
             output.push_str("• License and copyright notice\n");
-            output.push_str("\n");
+            output.push('\n');
             output.push_str("MIT License\n");
-            output.push_str("\n");
+            output.push('\n');
             output.push_str("Permission is hereby granted, free of charge, to any person obtaining a copy\n");
             output.push_str("of this software and associated documentation files (the \"Software\"), to deal\n");
             output.push_str("in the Software without restriction, including without limitation the rights\n");
             output.push_str("to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n");
             output.push_str("copies of the Software, and to permit persons to whom the Software is\n");
             output.push_str("furnished to do so, subject to the following conditions:\n");
-            output.push_str("\n");
+            output.push('\n');
             output.push_str("The above copyright notice and this permission notice shall be included in all\n");
             output.push_str("copies or substantial portions of the Software.\n");
-            output.push_str("\n");
+            output.push('\n');
             output.push_str("THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n");
             output.push_str("IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n");
             output.push_str("FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n");
@@ -92,7 +90,7 @@ pub fn display_license(tool_name: &str, license: LicenseType) -> String {
             output.push_str("• Distribution\n");
             output.push_str("• Patent use\n");
             output.push_str("• Private use\n");
-            output.push_str("\n");
+            output.push('\n');
             output.push_str("Requires:\n");
             output.push_str("• License and copyright notice\n");
             output.push_str("• State changes\n");
@@ -105,11 +103,12 @@ pub fn display_license(tool_name: &str, license: LicenseType) -> String {
         }
     }
 
-    output.push_str("\n");
+    output.push('\n');
 
     if output::is_tty() {
         use colored::Colorize;
-        output.push_str(&format!("For full license text, see: {}\n", "LICENSE file in project root".blue().underline()));
+        use std::fmt::Write;
+        writeln!(output, "For full license text, see: {}", "LICENSE file in project root".blue().underline()).unwrap();
     } else {
         output.push_str("For full license text, see: LICENSE file in project root\n");
     }
@@ -123,13 +122,13 @@ mod tests {
 
     #[test]
     fn test_license_type_from_str() {
-        assert_eq!(LicenseType::from_str("MIT"), Some(LicenseType::MIT));
-        assert_eq!(LicenseType::from_str("mit"), Some(LicenseType::MIT));
-        assert_eq!(LicenseType::from_str("Apache-2.0"), Some(LicenseType::Apache2));
-        assert_eq!(LicenseType::from_str("apache"), Some(LicenseType::Apache2));
-        assert_eq!(LicenseType::from_str("CC0-1.0"), Some(LicenseType::CC0));
-        assert_eq!(LicenseType::from_str("cc0"), Some(LicenseType::CC0));
-        assert_eq!(LicenseType::from_str("unknown"), None);
+        assert_eq!(LicenseType::parse("MIT"), Some(LicenseType::MIT));
+        assert_eq!(LicenseType::parse("mit"), Some(LicenseType::MIT));
+        assert_eq!(LicenseType::parse("Apache-2.0"), Some(LicenseType::Apache2));
+        assert_eq!(LicenseType::parse("apache"), Some(LicenseType::Apache2));
+        assert_eq!(LicenseType::parse("CC0-1.0"), Some(LicenseType::CC0));
+        assert_eq!(LicenseType::parse("cc0"), Some(LicenseType::CC0));
+        assert_eq!(LicenseType::parse("unknown"), None);
     }
 
     #[test]

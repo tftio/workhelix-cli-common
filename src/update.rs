@@ -114,7 +114,7 @@ pub fn get_latest_version(repo_info: &RepoInfo) -> Result<String, String> {
         .map_err(|e| e.to_string())?;
 
     let response: serde_json::Value = client
-        .get(&repo_info.latest_release_url())
+        .get(repo_info.latest_release_url())
         .send()
         .map_err(|e| e.to_string())?
         .json()

@@ -80,8 +80,8 @@ mod tests {
     #[test]
     fn test_is_tty_returns_bool() {
         // Just verify it returns a boolean without panicking
-        let result = is_tty();
-        assert!(result || !result); // Always true - just checking it compiles
+        let _result = is_tty();
+        // Function executed successfully if we get here
     }
 
     #[test]

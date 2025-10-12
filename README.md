@@ -132,7 +132,7 @@ Health checks with extensible framework:
 ```rust
 impl DoctorChecks for MyTool {
     fn repo_info() -> RepoInfo {
-        RepoInfo::new("owner", "repo", "repo-v")
+        RepoInfo::new("owner", "repo", "v")
     }
 
     fn current_version() -> &'static str {

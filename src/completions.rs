@@ -10,7 +10,7 @@ use std::io;
 /// Generate shell completion scripts for a clap-based CLI.
 ///
 /// This function generates shell completions and prints both installation instructions
-/// and the completion script to stdout. It supports bash, zsh, fish, elvish, and PowerShell.
+/// and the completion script to stdout. It supports bash, zsh, fish, elvish, and `PowerShell`.
 ///
 /// # Type Parameters
 /// * `T` - A type that implements `CommandFactory` (typically your clap `Cli` struct)

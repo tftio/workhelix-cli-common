@@ -31,7 +31,7 @@ pub trait DoctorChecks {
 /// * `T` - A type that implements `DoctorChecks`
 pub fn run_doctor<T: DoctorChecks>(tool: &T) -> i32 {
     let tool_name = T::repo_info().name;
-    println!("🏥 {} health check", tool_name);
+    println!("🏥 {tool_name} health check");
     println!("{}", "=".repeat(tool_name.len() + 14));
     println!();
 
@@ -93,6 +93,9 @@ pub fn run_doctor<T: DoctorChecks>(tool: &T) -> i32 {
 ///
 /// Returns `Ok(Some(version))` if an update is available, `Ok(None)` if up-to-date,
 /// or `Err` if the check failed.
+///
+/// # Errors
+/// Returns an error if the HTTP request fails or the response cannot be parsed.
 pub fn check_for_updates(repo_info: &RepoInfo, current_version: &str) -> Result<Option<String>, String> {
     let client = reqwest::blocking::Client::builder()
         .user_agent(format!("{}-doctor", repo_info.name))
@@ -101,7 +104,7 @@ pub fn check_for_updates(repo_info: &RepoInfo, current_version: &str) -> Result<
         .map_err(|e| e.to_string())?;
 
     let response: serde_json::Value = client
-        .get(&repo_info.latest_release_url())
+        .get(repo_info.latest_release_url())
         .send()
         .map_err(|e| e.to_string())?
         .json()
