@@ -96,7 +96,10 @@ pub fn run_doctor<T: DoctorChecks>(tool: &T) -> i32 {
 ///
 /// # Errors
 /// Returns an error if the HTTP request fails or the response cannot be parsed.
-pub fn check_for_updates(repo_info: &RepoInfo, current_version: &str) -> Result<Option<String>, String> {
+pub fn check_for_updates(
+    repo_info: &RepoInfo,
+    current_version: &str,
+) -> Result<Option<String>, String> {
     let client = reqwest::blocking::Client::builder()
         .user_agent(format!("{}-doctor", repo_info.name))
         .timeout(std::time::Duration::from_secs(5))

@@ -91,7 +91,10 @@ pub fn run_update(
         Ok(()) => {
             println!("✅ Successfully updated to v{target_version}");
             println!();
-            println!("Run '{} --version' to verify the installation.", repo_info.name);
+            println!(
+                "Run '{} --version' to verify the installation.",
+                repo_info.name
+            );
             0
         }
         Err(e) => {
@@ -141,7 +144,10 @@ fn perform_update(repo_info: &RepoInfo, version: &str, install_path: &Path) -> R
 
     let download_url = repo_info.download_url(version, &platform, archive_ext);
 
-    println!("📥 Downloading {}-{platform}.{archive_ext}...", repo_info.name);
+    println!(
+        "📥 Downloading {}-{platform}.{archive_ext}...",
+        repo_info.name
+    );
 
     // Download file
     let client = reqwest::blocking::Client::builder()
@@ -171,7 +177,10 @@ fn perform_update(repo_info: &RepoInfo, version: &str, install_path: &Path) -> R
     if checksum_response.status().is_success() {
         println!("🔐 Verifying checksum...");
         let expected_checksum = checksum_response.text().map_err(|e| e.to_string())?;
-        let expected_checksum = expected_checksum.split_whitespace().next().unwrap_or(&expected_checksum);
+        let expected_checksum = expected_checksum
+            .split_whitespace()
+            .next()
+            .unwrap_or(&expected_checksum);
 
         let mut hasher = Sha256::new();
         hasher.update(&bytes);
@@ -283,15 +292,14 @@ fn extract_zip(bytes: &[u8], dest: &Path) -> Result<(), String> {
         let outpath = dest.join(file.name());
 
         if file.is_dir() {
-            fs::create_dir_all(&outpath)
-                .map_err(|e| format!("Failed to create directory: {e}"))?;
+            fs::create_dir_all(&outpath).map_err(|e| format!("Failed to create directory: {e}"))?;
         } else {
             if let Some(p) = outpath.parent() {
                 fs::create_dir_all(p)
                     .map_err(|e| format!("Failed to create parent directory: {e}"))?;
             }
-            let mut outfile = fs::File::create(&outpath)
-                .map_err(|e| format!("Failed to create file: {e}"))?;
+            let mut outfile =
+                fs::File::create(&outpath).map_err(|e| format!("Failed to create file: {e}"))?;
             io::copy(&mut file, &mut outfile)
                 .map_err(|e| format!("Failed to extract file: {e}"))?;
         }
@@ -321,7 +329,10 @@ mod tests {
     fn test_repo_info_latest_release_url() {
         let repo = RepoInfo::new("workhelix", "prompter", "prompter-v");
         let url = repo.latest_release_url();
-        assert_eq!(url, "https://api.github.com/repos/workhelix/prompter/releases/latest");
+        assert_eq!(
+            url,
+            "https://api.github.com/repos/workhelix/prompter/releases/latest"
+        );
     }
 
     #[test]

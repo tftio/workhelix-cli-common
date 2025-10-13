@@ -65,22 +65,46 @@ pub fn display_license(tool_name: &str, license: LicenseType) -> String {
             output.push('\n');
             output.push_str("MIT License\n");
             output.push('\n');
-            output.push_str("Permission is hereby granted, free of charge, to any person obtaining a copy\n");
-            output.push_str("of this software and associated documentation files (the \"Software\"), to deal\n");
-            output.push_str("in the Software without restriction, including without limitation the rights\n");
-            output.push_str("to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n");
-            output.push_str("copies of the Software, and to permit persons to whom the Software is\n");
+            output.push_str(
+                "Permission is hereby granted, free of charge, to any person obtaining a copy\n",
+            );
+            output.push_str(
+                "of this software and associated documentation files (the \"Software\"), to deal\n",
+            );
+            output.push_str(
+                "in the Software without restriction, including without limitation the rights\n",
+            );
+            output.push_str(
+                "to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n",
+            );
+            output.push_str(
+                "copies of the Software, and to permit persons to whom the Software is\n",
+            );
             output.push_str("furnished to do so, subject to the following conditions:\n");
             output.push('\n');
-            output.push_str("The above copyright notice and this permission notice shall be included in all\n");
+            output.push_str(
+                "The above copyright notice and this permission notice shall be included in all\n",
+            );
             output.push_str("copies or substantial portions of the Software.\n");
             output.push('\n');
-            output.push_str("THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n");
-            output.push_str("IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n");
-            output.push_str("FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n");
-            output.push_str("AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n");
-            output.push_str("LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n");
-            output.push_str("OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n");
+            output.push_str(
+                "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n",
+            );
+            output.push_str(
+                "IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n",
+            );
+            output.push_str(
+                "FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n",
+            );
+            output.push_str(
+                "AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n",
+            );
+            output.push_str(
+                "LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n",
+            );
+            output.push_str(
+                "OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n",
+            );
             output.push_str("SOFTWARE.\n");
         }
         LicenseType::Apache2 => {
@@ -108,7 +132,12 @@ pub fn display_license(tool_name: &str, license: LicenseType) -> String {
     if output::is_tty() {
         use colored::Colorize;
         use std::fmt::Write;
-        writeln!(output, "For full license text, see: {}", "LICENSE file in project root".blue().underline()).unwrap();
+        writeln!(
+            output,
+            "For full license text, see: {}",
+            "LICENSE file in project root".blue().underline()
+        )
+        .unwrap();
     } else {
         output.push_str("For full license text, see: LICENSE file in project root\n");
     }

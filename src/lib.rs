@@ -57,9 +57,9 @@
 //! ```
 
 // Re-export main types and traits
-pub use types::{DoctorCheck, RepoInfo};
 pub use doctor::DoctorChecks;
 pub use license::LicenseType;
+pub use types::{DoctorCheck, RepoInfo};
 
 // Public modules
 pub mod completions;
@@ -71,9 +71,9 @@ pub mod update;
 
 // Re-export commonly used items
 pub use completions::generate_completions;
-pub use doctor::{run_doctor, check_for_updates};
+pub use doctor::{check_for_updates, run_doctor};
 pub use license::display_license;
-pub use update::{run_update, get_latest_version};
+pub use update::{get_latest_version, run_update};
 
 #[cfg(test)]
 mod tests {
