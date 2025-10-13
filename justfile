@@ -108,6 +108,13 @@ release level:
     echo "✅ All quality gates passed"
     echo ""
 
+    # Validate package
+    echo "Step 2.5: Validating package..."
+    cargo package --locked --allow-dirty >/dev/null
+    cargo publish --dry-run --allow-dirty
+    echo "✅ Package validation passed"
+    echo ""
+
     # Version management
     echo "Step 3: Bumping {{ level }} version..."
     versioneer {{ level }}
@@ -133,6 +140,12 @@ release level:
     echo "  Version: $NEW_VERSION"
     echo "  Tag: v$NEW_VERSION"
     echo ""
+    echo "NOTE: Pushing the tag will trigger GitHub Actions to:"
+    echo "  - Run full CI test suite"
+    echo "  - Validate version matches tag"
+    echo "  - Publish to crates.io (via Trusted Publishing)"
+    echo "  - Create GitHub Release"
+    echo ""
 
     if [ -t 0 ]; then
         read -p "Push release to GitHub? [y/N]: " -n 1 -r
@@ -150,7 +163,9 @@ release level:
     git push --tags
     echo "✅ Pushed to remote"
     echo ""
-    echo "🎉 Release complete! Tag v$NEW_VERSION pushed."
+    echo "🎉 Release initiated!"
+    echo "   • Monitor GitHub Actions: https://github.com/tftio/workhelix-cli-common/actions"
+    echo "   • Publishing will complete automatically via Trusted Publishing"
 
 # Clean build artifacts
 clean:

@@ -12,16 +12,33 @@ This library provides shared functionality for CLI tools including:
 - **License display** - Standardized license information for MIT, Apache-2.0, CC0
 - **Terminal output utilities** - TTY-aware colored output and formatting
 
-## Usage
+## Installation
 
 Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-workhelix-cli-common = { path = "../workhelix-cli-common" }
+workhelix-cli-common = "0.1"
 clap = { version = "4.5", features = ["derive"] }
 clap_complete = "4.5"
 ```
+
+Or add via command line:
+
+```bash
+cargo add workhelix-cli-common
+```
+
+### Using a Local Development Version
+
+For local development:
+
+```toml
+[dependencies]
+workhelix-cli-common = { path = "../workhelix-cli-common" }
+```
+
+## Usage
 
 ## Example
 
@@ -173,6 +190,16 @@ println!("{}", output::error("Operation failed"));
 println!("{}", output::warning("Warning message"));
 println!("{}", output::info("Information"));
 ```
+
+## Links
+
+- [crates.io](https://crates.io/crates/workhelix-cli-common)
+- [Documentation](https://docs.rs/workhelix-cli-common)
+- [Repository](https://github.com/tftio/workhelix-cli-common)
+
+## Development
+
+See [RELEASE.md](RELEASE.md) for information about the release process.
 
 ## License
 
