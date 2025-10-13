@@ -5,7 +5,7 @@ edition = "2024"
 rust-version = "1.85.0"
 license = "MIT"
 description = "Common functionality for Workhelix Rust CLI tools"
-repository = "https://github.com/workhelix/workhelix-cli-common"
+repository = "https://github.com/tftio/workhelix-cli-common"
 keywords = ["cli", "utilities", "workhelix"]
 categories = ["command-line-utilities", "development-tools"]
 
