@@ -65,7 +65,7 @@ enum Commands {
         #[arg(long)]
         version: Option<String>,
         #[arg(long)]
-        force: bool,
+        yes: bool,
         #[arg(long)]
         install_dir: Option<std::path::PathBuf>,
     },
@@ -108,12 +108,12 @@ fn main() {
         Commands::Doctor => {
             doctor::run_doctor(&MyTool)
         }
-        Commands::Update { version, force, install_dir } => {
+        Commands::Update { version, yes, install_dir } => {
             update::run_update(
                 &MyTool::repo_info(),
                 MyTool::current_version(),
                 version.as_deref(),
-                force,
+                yes,
                 install_dir.as_deref(),
             )
         }

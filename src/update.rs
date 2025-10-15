@@ -20,7 +20,7 @@ use std::path::Path;
 /// * `repo_info` - Repository information for GitHub integration
 /// * `current_version` - Current version of the tool
 /// * `version` - Optional specific version to install
-/// * `force` - Force installation even if already up-to-date
+/// * `assume_yes` - Automatically confirm prompts and reinstall even if already up-to-date
 /// * `install_dir` - Optional custom installation directory
 ///
 /// # Panics
@@ -30,7 +30,7 @@ pub fn run_update(
     repo_info: &RepoInfo,
     current_version: &str,
     version: Option<&str>,
-    force: bool,
+    assume_yes: bool,
     install_dir: Option<&Path>,
 ) -> i32 {
     println!("🔄 Checking for updates...");
@@ -49,7 +49,7 @@ pub fn run_update(
     };
 
     // Check if already up-to-date
-    if target_version == current_version && !force {
+    if target_version == current_version && !assume_yes {
         println!("✅ Already running latest version (v{current_version})");
         return 2;
     }
@@ -72,8 +72,8 @@ pub fn run_update(
     println!("📍 Install location: {}", install_path.display());
     println!();
 
-    // Confirm unless forced
-    if !force {
+    // Confirm unless auto-confirm requested
+    if !assume_yes {
         print!("Continue with update? [y/N]: ");
         io::stdout().flush().unwrap();
 
