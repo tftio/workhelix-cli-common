@@ -1,5 +1,8 @@
 # workhelix-cli-common - Development Workflow
 # Requires: just, peter-hook, versioneer
+#
+
+export TOOL_NAME := "workhelix-cli-common"
 
 # Default recipe to display available commands
 default:
@@ -7,7 +10,6 @@ default:
 
 # Setup development environment
 setup:
-    @echo "Setting up workhelix-cli-common development environment..."
     @just install-hooks
     @echo "✅ Setup complete!"
 
@@ -25,7 +27,7 @@ install-hooks:
 # Version management
 version-show:
     @echo "Current version: $(cat VERSION)"
-    @echo "Cargo.toml version: $(grep '^version' Cargo.toml | cut -d'"' -f2)"
+    @echo "Cargo.toml version: $(grep '^version' Cargo.toml | cut -d'\"' -f2)"
 
 # Bump version (patch|minor|major)
 bump-version level:
@@ -38,134 +40,126 @@ bump-version level:
         exit 1; \
     fi
 
-# Release workflow with comprehensive validation
-release level:
+# Release workflow - validates and publishes a git tag
+release:
     #!/usr/bin/env bash
     set -euo pipefail
 
-    # Validate bump type
-    case "{{ level }}" in
-        patch|minor|major) ;;
-        *)
-            echo "❌ Invalid bump type: {{ level }}"
-            echo "Usage: just release [patch|minor|major]"
-            exit 1
-            ;;
-    esac
+    PROJECT_NAME="$TOOL_NAME"
 
-    echo "🚀 Starting release workflow for workhelix-cli-common..."
+    echo "🚀 Starting release workflow for $PROJECT_NAME..."
     echo ""
 
-    # Prerequisites validation
-    echo "Step 1: Validating prerequisites..."
-    if ! command -v versioneer >/dev/null 2>&1; then
-        echo "❌ versioneer not found. Install with: cargo install versioneer"
+    if [ ! -f VERSION ]; then
+        echo "❌ VERSION file not found"
         exit 1
     fi
+    CURRENT_VERSION=$(cat VERSION)
+    TAG="v$CURRENT_VERSION"
 
-    if ! git rev-parse --git-dir >/dev/null 2>&1; then
-        echo "❌ Not in a git repository"
-        exit 1
-    fi
+    echo "📋 Release Information:"
+    echo "  Project: $PROJECT_NAME"
+    echo "  Version: $CURRENT_VERSION"
+    echo "  Tag: $TAG"
+    echo ""
 
+    echo "Step 1: Checking repository is clean..."
     if ! git diff-index --quiet HEAD --; then
-        echo "❌ Working directory is not clean. Please commit or stash changes."
+        echo "❌ Working directory not clean"
         git status --short
         exit 1
     fi
+    echo "✅ Repository is clean"
+    echo ""
 
-    CURRENT_BRANCH=$(git branch --show-current)
-    if [ "$CURRENT_BRANCH" != "main" ]; then
-        echo "❌ Must be on main branch for release (currently on: $CURRENT_BRANCH)"
+    echo "Step 2: Checking local and remote HEAD are in sync..."
+    git fetch origin main 2>/dev/null || true
+    LOCAL_HEAD=$(git rev-parse HEAD)
+    REMOTE_HEAD=$(git rev-parse origin/main)
+    if [ "$LOCAL_HEAD" != "$REMOTE_HEAD" ]; then
+        echo "❌ Local HEAD and origin/main are not in sync"
+        echo "  Local:  $LOCAL_HEAD"
+        echo "  Remote: $REMOTE_HEAD"
+        echo "Run: git push origin main"
         exit 1
     fi
+    echo "✅ Local and remote HEAD in sync: ${LOCAL_HEAD:0:8}"
+    echo ""
 
-    git fetch origin main >/dev/null 2>&1
-    LOCAL=$(git rev-parse HEAD)
-    REMOTE=$(git rev-parse origin/main)
-    if [ "$LOCAL" != "$REMOTE" ]; then
-        echo "❌ Local main branch is not up-to-date with origin/main"
-        echo "Run: git pull origin main"
+    echo "Step 3: Checking tag does not exist..."
+    git fetch --tags origin 2>/dev/null || true
+    if git tag -l "$TAG" | grep -q "^$TAG$"; then
+        echo "❌ Tag $TAG already exists locally"
+        git show "$TAG" --no-patch
         exit 1
     fi
-
-    if ! versioneer verify >/dev/null 2>&1; then
-        echo "❌ Version files are not synchronized"
-        echo "Run: versioneer sync"
+    if git ls-remote --tags origin | grep -q "refs/tags/$TAG$"; then
+        echo "❌ Tag $TAG already exists on remote"
         exit 1
     fi
-
-    CURRENT_VERSION=$(versioneer show)
-    echo "✅ Prerequisites validated (current version: $CURRENT_VERSION)"
+    echo "✅ Tag $TAG does not exist"
     echo ""
 
-    # Quality gates
-    echo "Step 2: Running quality gates..."
-    just test
-    just audit
-    just deny
-    just pre-commit
-    echo "✅ All quality gates passed"
+    echo "Step 4: Checking no future version tags exist..."
+    FUTURE_TAGS=$(git tag -l 'v*' | sed 's/^v//' | while read -r ver; do
+        if [ -z "$ver" ]; then continue; fi
+        LATEST=$(printf '%s\n%s' "$CURRENT_VERSION" "$ver" | sort -V | tail -n1)
+        if [ "$LATEST" = "$ver" ] && [ "$ver" != "$CURRENT_VERSION" ]; then
+            echo "$ver"
+        fi
+    done)
+    if [ -n "$FUTURE_TAGS" ]; then
+        echo "❌ Future version tags exist:"
+        echo "$FUTURE_TAGS" | sed 's/^/  v/'
+        exit 1
+    fi
+    echo "✅ No future version tags found"
     echo ""
 
-    # Validate package
-    echo "Step 2.5: Validating package..."
-    cargo package --locked --allow-dirty >/dev/null
-    cargo publish --dry-run --allow-dirty
-    echo "✅ Package validation passed"
+    echo "Step 5: Validating version consistency..."
+    CARGO_VERSION=$(grep '^version = ' Cargo.toml | head -1 | sed 's/version = \"\(.*\)\"/\1/')
+    echo "  VERSION file: $CURRENT_VERSION"
+    echo "  Cargo.toml:   $CARGO_VERSION"
+    if [ "$CURRENT_VERSION" != "$CARGO_VERSION" ]; then
+        echo "❌ Version mismatch between VERSION and Cargo.toml"
+        exit 1
+    fi
+    echo "✅ Version consistency validated"
     echo ""
 
-    # Version management
-    echo "Step 3: Bumping {{ level }} version..."
-    versioneer {{ level }}
-    NEW_VERSION=$(versioneer show)
-    echo "✅ Version bumped: $CURRENT_VERSION → $NEW_VERSION"
+    echo "Step 6: Creating tag..."
+    git tag -a "$TAG" -m "Release $CURRENT_VERSION"
+    echo "✅ Created tag: $TAG"
     echo ""
 
-    # Create commit FIRST
-    echo "Step 4: Committing changes..."
-    git add Cargo.toml Cargo.lock VERSION
-    git commit -m "chore: bump version to $NEW_VERSION"
-    echo "✅ Changes committed"
-    echo ""
-
-    # Create tag AFTER commit
-    echo "Step 5: Creating git tag..."
-    versioneer tag --tag-format "v{version}"
-    echo "✅ Tag created: v$NEW_VERSION"
-    echo ""
-
-    # Interactive confirmation
-    echo "Ready to push release:"
-    echo "  Version: $NEW_VERSION"
-    echo "  Tag: v$NEW_VERSION"
-    echo ""
-    echo "NOTE: Pushing the tag will trigger GitHub Actions to:"
-    echo "  - Run full CI test suite"
-    echo "  - Validate version matches tag"
-    echo "  - Publish to crates.io (via Trusted Publishing)"
-    echo "  - Create GitHub Release"
+    echo "Ready to publish release:"
+    echo "  Tag: $TAG"
+    echo "  Version: $CURRENT_VERSION"
+    echo "  Commit: ${LOCAL_HEAD:0:8}"
     echo ""
 
     if [ -t 0 ]; then
-        read -p "Push release to GitHub? [y/N]: " -n 1 -r
+        read -p "Push tag to trigger release? [y/N]: " -n 1 -r
         echo
         if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            echo "Release preparation complete but not pushed"
-            echo "To push manually: git push origin main && git push --tags"
+            echo "Release cancelled"
+            echo "To push manually: git push origin $TAG"
             exit 0
         fi
     fi
 
-    # Push to remote
-    echo "Step 6: Pushing to remote..."
-    git push origin main
-    git push --tags
-    echo "✅ Pushed to remote"
+    echo "Step 7: Pushing tag to remote..."
+    git push origin "$TAG"
+    echo "✅ Tag pushed to remote"
     echo ""
-    echo "🎉 Release initiated!"
-    echo "   • Monitor GitHub Actions: https://github.com/tftio/workhelix-cli-common/actions"
-    echo "   • Publishing will complete automatically via Trusted Publishing"
+    echo "🎉 Release $TAG published!"
+    echo ""
+    echo "GitHub Actions will now:"
+    echo "  1. Create draft release"
+    echo "  2. Build cross-platform binaries"
+    echo "  3. Publish release"
+    echo ""
+    echo "Monitor progress: gh run list --workflow=release.yml"
 
 # Clean build artifacts
 clean:
@@ -176,15 +170,22 @@ clean:
 
 # Build in debug mode
 build:
-    @echo "Building workhelix-cli-common..."
+    @echo "Building {{TOOL_NAME}}"
     cargo build
     @echo "✅ Build complete!"
 
 # Build in release mode
 build-release:
-    @echo "Building workhelix-cli-common in release mode..."
+    @echo "Building {{TOOL_NAME}} in release mode..."
     cargo build --release
     @echo "✅ Release build complete!"
+
+# Generate shell completions for all supported shells
+completions:
+    @./scripts/generate-completions.sh
+
+manpage:
+    @./scripts/generate-man.sh
 
 # Run tests
 test:
@@ -193,7 +194,7 @@ test:
     @echo "✅ Tests complete!"
 
 # Code quality checks
-quality: pre-commit pre-push
+quality: format-check lint test
 
 # Run pre-commit hooks (format-check + clippy-check)
 pre-commit:
@@ -227,13 +228,15 @@ format:
 
 # Check code formatting
 format-check:
-    @just pre-commit
-    @just pre-push
+    @echo "Checking formatting..."
+    cargo fmt --all -- --check
+    @echo "✅ Formatting looks good!"
 
 # Lint code with clippy
 lint:
-    @just pre-commit
-    @just pre-push
+    @echo "Running clippy..."
+    cargo clippy --all-targets -- -D warnings
+    @echo "✅ Clippy checks passed!"
 
 # Security audit
 audit:
@@ -258,11 +261,11 @@ deny:
     fi
 
 # Full CI pipeline
-ci: quality test build-release
+ci: quality build-release
     @echo "✅ Full CI pipeline complete!"
 
 # Development workflow - quick checks before commit
-dev: format pre-commit test
+dev: format-check lint test
     @echo "✅ Development checks complete! Ready to commit."
 
 # Run the built binary
