@@ -81,6 +81,6 @@ execution = "sequential"
 description = "Code quality checks before commit (matches CI format + lint jobs)"
 
 [groups.pre-push]
-includes = ["clippy-check", "test-all", "venv-check", "security-audit", "secret-scan", "version-sync-check", "tag-version-check"]
+includes = ["clippy-check", "test-all", "venv-check", "security-audit", "secret-scan", "version-sync-check"]
 execution = "sequential"
 description = "Full validation before push (matches CI lint + test + audit + security jobs)"

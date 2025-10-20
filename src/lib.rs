@@ -73,7 +73,7 @@ pub mod update;
 pub use completions::generate_completions;
 pub use doctor::{check_for_updates, run_doctor};
 pub use license::display_license;
-pub use update::{get_latest_version, run_update};
+pub use update::run_update;
 
 #[cfg(test)]
 mod tests {
