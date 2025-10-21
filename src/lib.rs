@@ -2,7 +2,6 @@
 //!
 //! This library provides shared functionality for CLI tools including:
 //! - Shell completion generation
-//! - Self-update mechanism with GitHub releases
 //! - Health check framework
 //! - License display
 //! - Terminal output utilities
@@ -12,7 +11,7 @@
 //! ```no_run
 //! use workhelix_cli_common::{
 //!     RepoInfo, DoctorChecks, DoctorCheck,
-//!     completions, doctor, license, update,
+//!     completions, doctor, license,
 //! };
 //! use clap::Parser;
 //!
@@ -25,7 +24,7 @@
 //!
 //! impl DoctorChecks for MyTool {
 //!     fn repo_info() -> RepoInfo {
-//!         RepoInfo::new("myorg", "mytool", "mytool-v")
+//!         RepoInfo::new("myorg", "mytool")
 //!     }
 //!
 //!     fn current_version() -> &'static str {
@@ -45,15 +44,6 @@
 //! // Run health check
 //! let tool = MyTool;
 //! let exit_code = doctor::run_doctor(&tool);
-//!
-//! // Run self-update
-//! let exit_code = update::run_update(
-//!     &MyTool::repo_info(),
-//!     MyTool::current_version(),
-//!     None,
-//!     false,
-//!     None,
-//! );
 //! ```
 
 // Re-export main types and traits
@@ -67,13 +57,11 @@ pub mod doctor;
 pub mod license;
 pub mod output;
 pub mod types;
-pub mod update;
 
 // Re-export commonly used items
 pub use completions::generate_completions;
-pub use doctor::{check_for_updates, run_doctor};
+pub use doctor::run_doctor;
 pub use license::display_license;
-pub use update::run_update;
 
 #[cfg(test)]
 mod tests {
@@ -81,10 +69,9 @@ mod tests {
 
     #[test]
     fn test_repo_info_creation() {
-        let repo = RepoInfo::new("workhelix", "test", "test-v");
+        let repo = RepoInfo::new("workhelix", "test");
         assert_eq!(repo.owner, "workhelix");
         assert_eq!(repo.name, "test");
-        assert_eq!(repo.tag_prefix, "test-v");
     }
 
     #[test]

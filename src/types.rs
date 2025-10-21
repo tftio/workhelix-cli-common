@@ -1,46 +1,21 @@
 //! Shared types for Workhelix CLI tools.
 
-/// Repository information for GitHub integration.
+/// Repository information for CLI tools.
 ///
-/// This structure holds the necessary information to interact with
-/// GitHub releases for updates and version checking.
+/// This structure holds basic repository metadata for identification purposes.
 #[derive(Debug, Clone)]
 pub struct RepoInfo {
-    /// GitHub repository owner (e.g., "workhelix")
+    /// Repository owner (e.g., "workhelix")
     pub owner: &'static str,
-    /// GitHub repository name (e.g., "prompter")
+    /// Repository name (e.g., "prompter")
     pub name: &'static str,
-    /// Tag prefix used for releases (e.g., "prompter-v")
-    pub tag_prefix: &'static str,
 }
 
 impl RepoInfo {
     /// Create a new `RepoInfo` instance.
     #[must_use]
-    pub const fn new(owner: &'static str, name: &'static str, tag_prefix: &'static str) -> Self {
-        Self {
-            owner,
-            name,
-            tag_prefix,
-        }
-    }
-
-    /// Get the GitHub API URL for latest release.
-    #[must_use]
-    pub fn latest_release_url(&self) -> String {
-        format!(
-            "https://api.github.com/repos/{}/{}/releases/latest",
-            self.owner, self.name
-        )
-    }
-
-    /// Get the download URL for a specific version and platform.
-    #[must_use]
-    pub fn download_url(&self, version: &str, platform: &str, extension: &str) -> String {
-        format!(
-            "https://github.com/{}/{}/releases/download/{}{}/{}-{}.{}",
-            self.owner, self.name, self.tag_prefix, version, self.name, platform, extension
-        )
+    pub const fn new(owner: &'static str, name: &'static str) -> Self {
+        Self { owner, name }
     }
 }
 
@@ -115,29 +90,9 @@ mod tests {
 
     #[test]
     fn test_repo_info_creation() {
-        let repo = RepoInfo::new("workhelix", "prompter", "prompter-v");
+        let repo = RepoInfo::new("workhelix", "prompter");
         assert_eq!(repo.owner, "workhelix");
         assert_eq!(repo.name, "prompter");
-        assert_eq!(repo.tag_prefix, "prompter-v");
-    }
-
-    #[test]
-    fn test_latest_release_url() {
-        let repo = RepoInfo::new("workhelix", "prompter", "prompter-v");
-        assert_eq!(
-            repo.latest_release_url(),
-            "https://api.github.com/repos/workhelix/prompter/releases/latest"
-        );
-    }
-
-    #[test]
-    fn test_download_url() {
-        let repo = RepoInfo::new("workhelix", "prompter", "prompter-v");
-        let url = repo.download_url("1.0.0", "x86_64-unknown-linux-gnu", "tar.gz");
-        assert_eq!(
-            url,
-            "https://github.com/workhelix/prompter/releases/download/prompter-v1.0.0/prompter-x86_64-unknown-linux-gnu.tar.gz"
-        );
     }
 
     #[test]

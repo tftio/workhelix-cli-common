@@ -1,7 +1,7 @@
 //! Health check and diagnostics module.
 //!
-//! This module provides a framework for running health checks on CLI tools,
-//! including update checking and tool-specific diagnostics.
+//! This module provides a framework for running health checks on CLI tools
+//! with tool-specific diagnostics.
 
 use crate::types::{DoctorCheck, RepoInfo};
 
@@ -36,7 +36,7 @@ pub fn run_doctor<T: DoctorChecks>(tool: &T) -> i32 {
     println!();
 
     let mut has_errors = false;
-    let mut has_warnings = false;
+    let has_warnings = false;
 
     // Run tool-specific checks
     let tool_checks = tool.tool_checks();
@@ -56,26 +56,6 @@ pub fn run_doctor<T: DoctorChecks>(tool: &T) -> i32 {
         println!();
     }
 
-    // Check for updates
-    println!("Updates:");
-    match check_for_updates(&T::repo_info(), T::current_version()) {
-        Ok(Some(latest)) => {
-            let current = T::current_version();
-            println!("  ⚠️  Update available: v{latest} (current: v{current})");
-            println!("  💡 Run '{tool_name} update' to install the latest version");
-            has_warnings = true;
-        }
-        Ok(None) => {
-            println!("  ✅ Running latest version (v{})", T::current_version());
-        }
-        Err(e) => {
-            println!("  ⚠️  Failed to check for updates: {e}");
-            has_warnings = true;
-        }
-    }
-
-    println!();
-
     // Summary
     if has_errors {
         println!("❌ Issues found - see above for details");
@@ -89,45 +69,6 @@ pub fn run_doctor<T: DoctorChecks>(tool: &T) -> i32 {
     }
 }
 
-/// Check for updates from GitHub releases.
-///
-/// Returns `Ok(Some(version))` if an update is available, `Ok(None)` if up-to-date,
-/// or `Err` if the check failed.
-///
-/// # Errors
-/// Returns an error if the HTTP request fails or the response cannot be parsed.
-pub fn check_for_updates(
-    repo_info: &RepoInfo,
-    current_version: &str,
-) -> Result<Option<String>, String> {
-    let client = reqwest::blocking::Client::builder()
-        .user_agent(format!("{}-doctor", repo_info.name))
-        .timeout(std::time::Duration::from_secs(5))
-        .build()
-        .map_err(|e| e.to_string())?;
-
-    let response: serde_json::Value = client
-        .get(repo_info.latest_release_url())
-        .send()
-        .map_err(|e| e.to_string())?
-        .json()
-        .map_err(|e| e.to_string())?;
-
-    let tag_name = response["tag_name"]
-        .as_str()
-        .ok_or_else(|| "No tag_name in response".to_string())?;
-
-    let latest = tag_name
-        .trim_start_matches(repo_info.tag_prefix)
-        .trim_start_matches('v');
-
-    if latest == current_version {
-        Ok(None)
-    } else {
-        Ok(Some(latest.to_string()))
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -136,7 +77,7 @@ mod tests {
 
     impl DoctorChecks for TestTool {
         fn repo_info() -> RepoInfo {
-            RepoInfo::new("workhelix", "test-tool", "test-tool-v")
+            RepoInfo::new("workhelix", "test-tool")
         }
 
         fn current_version() -> &'static str {
@@ -157,13 +98,5 @@ mod tests {
         let exit_code = run_doctor(&tool);
         // Should return 1 because we have a failing check
         assert_eq!(exit_code, 1);
-    }
-
-    #[test]
-    fn test_check_for_updates_handles_errors() {
-        let repo = RepoInfo::new("nonexistent", "repo", "v");
-        let result = check_for_updates(&repo, "1.0.0");
-        // Either succeeds or fails, both are acceptable in tests
-        assert!(result.is_ok() || result.is_err());
     }
 }

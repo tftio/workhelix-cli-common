@@ -7,7 +7,6 @@ Common functionality for Workhelix Rust CLI tools.
 This library provides shared functionality for CLI tools including:
 
 - **Shell completion generation** - Generate completions for bash, zsh, fish, elvish, PowerShell
-- **Self-update mechanism** - Download and install updates from GitHub releases with checksum verification
 - **Health check framework** - Extensible doctor command with tool-specific checks
 - **License display** - Standardized license information for MIT, Apache-2.0, CC0
 - **Terminal output utilities** - TTY-aware colored output and formatting
@@ -45,7 +44,7 @@ workhelix-cli-common = { path = "../workhelix-cli-common" }
 ```rust
 use workhelix_cli_common::{
     RepoInfo, DoctorChecks, DoctorCheck,
-    completions, doctor, license, update, LicenseType,
+    completions, doctor, license, LicenseType,
 };
 use clap::{Parser, Subcommand};
 
@@ -61,21 +60,13 @@ enum Commands {
     License,
     Completions { shell: clap_complete::Shell },
     Doctor,
-    Update {
-        #[arg(long)]
-        version: Option<String>,
-        #[arg(long)]
-        yes: bool,
-        #[arg(long)]
-        install_dir: Option<std::path::PathBuf>,
-    },
 }
 
 struct MyTool;
 
 impl DoctorChecks for MyTool {
     fn repo_info() -> RepoInfo {
-        RepoInfo::new("myorg", "mytool", "mytool-v")
+        RepoInfo::new("myorg", "mytool")
     }
 
     fn current_version() -> &'static str {
@@ -108,15 +99,6 @@ fn main() {
         Commands::Doctor => {
             doctor::run_doctor(&MyTool)
         }
-        Commands::Update { version, yes, install_dir } => {
-            update::run_update(
-                &MyTool::repo_info(),
-                MyTool::current_version(),
-                version.as_deref(),
-                yes,
-                install_dir.as_deref(),
-            )
-        }
     };
 
     std::process::exit(exit_code);
@@ -133,15 +115,6 @@ Generate shell completions with installation instructions:
 completions::generate_completions::<YourCli>(Shell::Bash);
 ```
 
-### Update
-
-Self-update with GitHub releases integration:
-
-```rust
-let repo = RepoInfo::new("owner", "repo", "repo-v");
-update::run_update(&repo, "1.0.0", None, false, None);
-```
-
 ### Doctor
 
 Health checks with extensible framework:
@@ -149,7 +122,7 @@ Health checks with extensible framework:
 ```rust
 impl DoctorChecks for MyTool {
     fn repo_info() -> RepoInfo {
-        RepoInfo::new("owner", "repo", "v")
+        RepoInfo::new("owner", "repo")
     }
 
     fn current_version() -> &'static str {
